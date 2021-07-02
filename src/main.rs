@@ -71,10 +71,6 @@ doms: &mut Vec<Domain>, img: &ImageBuffer<Rgba<u8>, Vec<u8>>, dim: &(u32, u32)) 
     let cyu = cy - 1;
     let cyd = cy + 1;
 
-    // Just allocate memory, no real check is needed
-    let cond = check_bounds(cx, cy, w, h);
-    // domain_px.push([x, y]);
-    // domain_px_s.insert([x, y]);
     let co = [
         [cxl, cyu], [cx, cyu], [cxr, cyu],
         [cxl, cy],  [cx, cy],  [cxr, cy],
@@ -231,40 +227,6 @@ fn generate_coords(x: u32, y: u32, w: u32, h: u32) -> Vec<[u32; 2]> {
         _ => {panic!("Pixel coordinate is incorrect!")}
     }
     return coords;
-}
-
-fn recalculate_domains(doms: &mut Vec<Domain>) {
-    let dom_num = doms.len();
-    let mut doms_updated = Vec::<Domain>::with_capacity(dom_num / 16);
-    let mut doms_processed = HashSet::<usize>::with_capacity(dom_num);
-
-    for (i, d0) in doms.iter().rev().enumerate() {
-        if !doms_processed.contains(&i) {
-            let d0c = [
-                (d0.cbbmax[0] - d0.cbbmin[0]) / 2,
-                (d0.cbbmax[1] - d0.cbbmin[1]) / 2,
-            ];
-
-            for (j, d1) in doms.iter().rev().enumerate() {
-                if i == j || doms_processed.contains(&j) {continue;} else {
-                    let d1c = [
-                        (d0.cbbmax[0] - d0.cbbmin[0]) / 2,
-                        (d0.cbbmax[1] - d0.cbbmin[1]) / 2,
-                    ];
-                }
-            }
-        }
-    }
-    //     let (mut cbbmin, mut cbbmax) = (d.cbbmin, d.cbbmax);
-    //     for [j, k] in &d.pxs {
-    //         if j < &cbbmin[0] {cbbmin[0] = *j;}
-    //         if k < &cbbmin[1] {cbbmin[1] = *k;}
-    //         if j > &cbbmax[0] {cbbmax[0] = *j;}
-    //         if k > &cbbmax[1] {cbbmax[1] = *k;}
-    //     }
-    //     d.cbbmin = cbbmin;
-    //     d.cbbmax = cbbmax;
-    // }
 }
 
 fn write_yolo(img: String, data: Vec<Domain>) {
