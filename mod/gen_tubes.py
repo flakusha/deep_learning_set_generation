@@ -106,13 +106,31 @@ def generate_set(context, image_name):
         slot.path = slot_path
 
         if "damage" in slot_path:
-            dmg_path = os.path.join(file_cur, slot_path)
+            dmg_path = "{}{}.png".format(
+                os.path.join(file_cur, slot_path),
+                str(bpy.context.scene.frame_current).zfill(4),
+            )
 
     # Now the scene is ready for render
     bpy.ops.render.render()
 
     # Run Rust standalone binary in a separate process
-    # subprocess.Popen(rust_app_path, args = dmg_path)
+    if os.name == "posix":
+        rust_app_path = os.path.join(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.abspath(__file__))), "target", "release",
+                    "deep_learning_set_generation"
+        )
+    elif os.name == "nt":
+        rust_app_path = os.path.join(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.abspath(__file__))), "target", "release",
+                    "deep_learning_set_generation.exe"
+        )
+
+    subprocess.Popen(args = (rust_app_path, dmg_path))
 
 def purge_orphans():
     """Clean up file from deleted assets."""
