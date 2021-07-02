@@ -111,23 +111,26 @@ doms: &mut Vec<Domain>, img: &ImageBuffer<Rgba<u8>, Vec<u8>>, dim: &(u32, u32)) 
         }
     }
 
+    dom_size = domain_px.len();
     let mut cmin = domain_px.iter().next().unwrap().clone();
     let mut cmax = cmin;
-    let mut pxs_t = HashSet::<[u32; 2]>::with_capacity(domain_px.len());
+    let mut pxs_t = HashSet::<[u32; 2]>::with_capacity(dom_size);
 
-    for i in domain_px.iter() {
-        pxs_t.insert(*i);
-        let (j, k) = (i[0], i[1]);
-        if j < cmin[0] {cmin[0] = j;}
-        if k < cmin[1] {cmin[1] = k;}
-        if j > cmax[0] {cmax[0] = j;}
-        if k > cmax[1] {cmax[1] = k;}
+    if dom_size > 64 {
+        for i in domain_px.iter() {
+            pxs_t.insert(*i);
+            let (j, k) = (i[0], i[1]);
+            if j < cmin[0] {cmin[0] = j;}
+            if k < cmin[1] {cmin[1] = k;}
+            if j > cmax[0] {cmax[0] = j;}
+            if k > cmax[1] {cmax[1] = k;}
+        }
+        doms.push(Domain {
+            pxs: pxs_t,
+            cbbmin: cmin,
+            cbbmax: cmax,
+        })
     }
-    doms.push(Domain {
-        pxs: pxs_t,
-        cbbmin: cmin,
-        cbbmax: cmax,
-    })
 }
 
 fn check_bounds(x: u32, y: u32, w: u32, h: u32) -> [bool; 4] {
@@ -235,7 +238,7 @@ fn write_yolo(img: String, data: Vec<Domain>) {
     let path = path.as_path();
     let display = path.display();
     let mut fl = match File::create(path) {
-        Err(why) => panic!("couldn't create {}: {}", display, why),
+        Err(why) => panic!("Couldn't create {}: {}", display, why),
         Ok(file) => file,
     };
 
@@ -249,8 +252,8 @@ fn write_yolo(img: String, data: Vec<Domain>) {
                 "{} {} {} {}",
                 (a.cbbmax[0] - a.cbbmin[0]) / 2,
                 (a.cbbmax[1] - a.cbbmin[1]) / 2,
-                a.cbbmax[0] - a.cbbmin[0],
-                a.cbbmax[1] - a.cbbmin[1],
+                1 + a.cbbmax[0] - a.cbbmin[0],
+                1 + a.cbbmax[1] - a.cbbmin[1],
                 )
             )
         ).collect();
