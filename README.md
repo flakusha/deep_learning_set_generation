@@ -31,7 +31,8 @@ and write them to *.yolo file
 * All images and results are placed alongside original Blender file
 
 ## Libraries in use:
-* Piperator - plugin to generate pipes using polygon centers of selected object
+* Piperator - plugin to generate pipes using polygon centers of selected object, credits:
+yeus <Thomas.Meschede@web.de>
 * Image - library used to read images in Rust
 
 ## Ways to enhance application:
