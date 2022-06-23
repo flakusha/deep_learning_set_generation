@@ -21,7 +21,7 @@ bl_info = {
     "name": "Deep Learning Set Generation",
     "description": "Plugin creates tubes sets for machine vision",
     "author": "Constantine Fedotov <zenflak@gmail.com>",
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "blender": (2, 93, 0),
     "category": "Render",
     "location": "Properties > Render > DLSG",
