@@ -37,9 +37,11 @@ and write them to *.yolo file
 ## Ways to enhance application:
 * Custom pipe generator with correct tubes used in real gas/oil pipelines
 * Better materials, more variants of materials
+* Automatic object selection and active status assignment, loop processing
 * Automatic materials and scene settings assignment
 * Randomized lighting setup close to real lighting
 * Tube geometry deform and bend, random material generation, more damages variants
 * Better and more diverse damages, description for every damage type in *.yolo files
 * Multithread domain search or any mainstream library to analyze image
+* Remove warnings during Rust compilation (code refactoring)
 

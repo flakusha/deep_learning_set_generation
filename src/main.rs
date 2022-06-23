@@ -1,6 +1,6 @@
-use std::{collections::HashSet, env, fs::File, path::{PathBuf}};
+use image::{io::Reader as ImageReader, ImageBuffer, Rgba};
 use std::io::prelude::*;
-use image::{ImageBuffer, Rgba, io::Reader as ImageReader};
+use std::{collections::HashSet, env, fs::File, path::PathBuf};
 
 /// Domain is the structure with HashSet of pixel coordinates pxs
 /// and not-axially-aligned bounding box (nAABB) top left `cbbmin`
@@ -18,6 +18,7 @@ struct Domain {
 
 // /// Max x * y distance from current pixel.
 // /// Максимальный квадрат расстояния от текущего пикселя, до пикселя в домене.
+// Temporary disabled
 // Временно отключена, была предназначена для объединения нескольких доменов в
 // один
 // const MAX_DIST: f32 = 128.0;
@@ -38,7 +39,10 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     println!("Image path: {}", args[1].clone());
     let img = ImageReader::open(args[1].clone())
-    .unwrap().decode().unwrap().to_rgba8();
+        .unwrap()
+        .decode()
+        .unwrap()
+        .to_rgba8();
     let w = img.dimensions().0;
     let h = img.dimensions().1;
 
@@ -48,7 +52,7 @@ fn main() {
 
 /// Iterates over image and finds Domains.
 ///
-/// Итерируется по изображению и находит домены в RGBA *.png изображении. 
+/// Итерируется по изображению и находит домены в RGBA *.png изображении.
 fn find_islands(img: ImageBuffer<Rgba<u8>, Vec<u8>>) -> Vec<Domain> {
     let dim = img.dimensions();
     let (w, h) = (dim.0, dim.1);
@@ -62,7 +66,7 @@ fn find_islands(img: ImageBuffer<Rgba<u8>, Vec<u8>>) -> Vec<Domain> {
         let (x, y) = (i as u32 % w, i as u32 / w);
         if px[3] > 0u8 && !visited.contains(&[x, y]) {
             if check_bounds(x, y, w, h).iter().all(|&x| x == true) {
-                proc_dom(x, y,  &mut visited,  &mut domains, &img, &dim);
+                proc_dom(x, y, &mut visited, &mut domains, &img, &dim);
             }
         }
     }
@@ -76,8 +80,14 @@ fn find_islands(img: ImageBuffer<Rgba<u8>, Vec<u8>>) -> Vec<Domain> {
 /// Получает координату первого пикселя в домене и каскадом проходится по всем
 /// направлениям в домене, получая координаты всех пикселей, которые есть
 /// в домене. Модифицирует переменные `vis` и `doms` на месте.
-fn proc_dom(x: u32, y: u32, vis: &mut HashSet<[u32; 2]>,
-doms: &mut Vec<Domain>, img: &ImageBuffer<Rgba<u8>, Vec<u8>>, dim: &(u32, u32)) {
+fn proc_dom(
+    x: u32,
+    y: u32,
+    vis: &mut HashSet<[u32; 2]>,
+    doms: &mut Vec<Domain>,
+    img: &ImageBuffer<Rgba<u8>, Vec<u8>>,
+    dim: &(u32, u32),
+) {
     // Cascade move along pixels in island/domain
     // Проходим по пикселям островка/домена каскадом
     let mut domain_px = Vec::<[u32; 2]>::with_capacity(256);
@@ -91,9 +101,15 @@ doms: &mut Vec<Domain>, img: &ImageBuffer<Rgba<u8>, Vec<u8>>, dim: &(u32, u32)) 
     let cyd = cy + 1;
 
     let co = [
-        [cxl, cyu], [cx, cyu], [cxr, cyu],
-        [cxl, cy],  [cx, cy],  [cxr, cy],
-        [cxl, cyd], [cx, cyd], [cxr, cyd],
+        [cxl, cyu],
+        [cx, cyu],
+        [cxr, cyu],
+        [cxl, cy],
+        [cx, cy],
+        [cxr, cy],
+        [cxl, cyd],
+        [cx, cyd],
+        [cxr, cyd],
     ];
 
     let mut px_new = 0;
@@ -141,10 +157,18 @@ doms: &mut Vec<Domain>, img: &ImageBuffer<Rgba<u8>, Vec<u8>>, dim: &(u32, u32)) 
         for i in domain_px.iter() {
             pxs_t.insert(*i);
             let (j, k) = (i[0], i[1]);
-            if j < cmin[0] {cmin[0] = j;}
-            if k < cmin[1] {cmin[1] = k;}
-            if j > cmax[0] {cmax[0] = j;}
-            if k > cmax[1] {cmax[1] = k;}
+            if j < cmin[0] {
+                cmin[0] = j;
+            }
+            if k < cmin[1] {
+                cmin[1] = k;
+            }
+            if j > cmax[0] {
+                cmax[0] = j;
+            }
+            if k > cmax[1] {
+                cmax[1] = k;
+            }
         }
         doms.push(Domain {
             pxs: pxs_t,
@@ -186,79 +210,65 @@ fn generate_coords(x: u32, y: u32, w: u32, h: u32) -> Vec<[u32; 2]> {
             let yd = y + 1;
 
             coords = vec![
-                [xl, yu], [x, yu], [xr, yu],
-                [xl, y],           [xr, y],
-                [xl, yd], [x, yd], [xr, yd],
+                [xl, yu],
+                [x, yu],
+                [xr, yu],
+                [xl, y],
+                [xr, y],
+                [xl, yd],
+                [x, yd],
+                [xr, yd],
             ];
-        },
+        }
         // Left edge
         [false, true, true, true] => {
             let xr = x + 1;
             let yu = y - 1;
             let yd = y + 1;
 
-            coords = vec![
-                [x, yu], [xr, yu],
-                         [xr, y],
-                [x, yd], [xr, yd],
-            ];
-        },
+            coords = vec![[x, yu], [xr, yu], [xr, y], [x, yd], [xr, yd]];
+        }
         // Top edge
         [true, false, true, true] => {
             let xl = x - 1;
             let xr = x + 1;
             let yd = y + 1;
 
-            coords = vec![
-                [xl, y],           [xr, y],
-                [xl, yd], [x, yd], [xr, yd],
-            ];
-
-        },
+            coords = vec![[xl, y], [xr, y], [xl, yd], [x, yd], [xr, yd]];
+        }
         // Right edge
         [true, true, false, true] => {
             let xl = x - 1;
             let yu = y - 1;
             let yd = y + 1;
 
-            coords = vec![
-                [xl, yu], [x, yu],
-                [xl, y],
-                [xl, yd], [x, yd],
-            ];
-        },
+            coords = vec![[xl, yu], [x, yu], [xl, y], [xl, yd], [x, yd]];
+        }
         // Bottom edge
         [true, true, true, false] => {
             let xl = x - 1;
             let xr = x + 1;
             let yu = y - 1;
 
-            coords = vec![
-                [xl, yu], [x, yu], [xr, yu],
-                [xl, y],           [xr, y],
-            ];
-        },
+            coords = vec![[xl, yu], [x, yu], [xr, yu], [xl, y], [xr, y]];
+        }
         // Top left corner
         [false, false, true, true] => {
             let xr = x + 1;
             let yd = y + 1;
 
-            coords = vec![
-                         [xr, y],
-                [x, yd], [xr, yd],
-            ];
-        },
+            coords = vec![[xr, y], [x, yd], [xr, yd]];
+        }
         // Bottom right corner
         [true, true, false, false] => {
             let xl = x - 1;
             let yu = y - 1;
 
-            coords = vec![
-                [xl, yu], [x, yu],
-                [xl, y],
-            ];
-        },
-        _ => {panic!("Pixel coordinate is incorrect!")}
+            coords = vec![[xl, yu], [x, yu], [xl, y]];
+        }
+        _ => {
+            panic!("Pixel coordinate is incorrect!")
+        }
     }
     return coords;
 }
@@ -285,20 +295,27 @@ fn write_yolo(img: String, data: Vec<Domain>, w: u32, h: u32) {
     //     println!("Debug: {:?}", i);
     // }
 
-    let dataw: String = data.into_iter().enumerate()
-        .map(|(i, a)| format!(
-            "{} {}\n", i, format!(
-                "{:.6} {:.6} {:.6} {:.6}",
-                (a.cbbmax[0] + a.cbbmin[0]) as f32 / (2 * w) as f32,
-                (a.cbbmax[1] + a.cbbmin[1]) as f32 / (2 * h) as f32,
-                (1 + a.cbbmax[0] - a.cbbmin[0]) as f32 / w as f32,
-                (1 + a.cbbmax[1] - a.cbbmin[1]) as f32 / h as f32,
+    let dataw: String = data
+        .into_iter()
+        .enumerate()
+        .map(|(i, a)| {
+            format!(
+                "{} {}\n",
+                i,
+                format!(
+                    "{:.6} {:.6} {:.6} {:.6}",
+                    (a.cbbmax[0] + a.cbbmin[0]) as f32 / (2 * w) as f32,
+                    (a.cbbmax[1] + a.cbbmin[1]) as f32 / (2 * h) as f32,
+                    (1 + a.cbbmax[0] - a.cbbmin[0]) as f32 / w as f32,
+                    (1 + a.cbbmax[1] - a.cbbmin[1]) as f32 / h as f32,
                 )
             )
-        ).collect();
+        })
+        .collect();
 
     match fl.write_all(dataw.as_bytes()) {
         Err(why) => panic!("Couldn't write to {}: {}", display, why),
         Ok(_) => println!("Successfully wrote to {}", display),
     }
 }
+
